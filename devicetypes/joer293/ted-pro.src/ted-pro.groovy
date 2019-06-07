@@ -1,7 +1,7 @@
  
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "TED Pro", namespace: "joer293", author: "joer@noface.net") {
+	definition (name: "TED Pro", author: "joer@noface.net") {
 
 		capability "Energy Meter"
         capability "Power Meter"
@@ -75,44 +75,20 @@ def poll() {
 
 def refresh() {
 	log.debug "refresh Ted Pro Home"
-    goImportTed()
-   
+   return goImportTed()
+   log.debug hubAction
 }
 
 def goImportTed(){
-	sendEvent(name: "energy", value: "polling", IsStateChange: "true")
-	def callBack = getCallBackAddress()
- //   log.debug "Ted callback $callBack"
- //   log.debug "Using IP: $ip and port: $port for device: ${device.id}"
-    def porthex = convertPortToHex(port)
-	def hosthex = convertIPtoHex(ip)
-    def request = """GET /api/DashData.xml HTTP/1.1\r\nAccept: */*\r\nHost: $ip:$port\r\n\r\n"""
-	log.debug "Ted Request: $request"
-	device.deviceNetworkId = "$hosthex:$porthex"
-    log.debug "The device id configured is: $device.deviceNetworkId"
-    try {
-    	def hubAction = new physicalgraph.device.HubAction(request, physicalgraph.device.Protocol.LAN, "${device.deviceNetworkId}")
-		return hubAction
-        } catch (Exception e) {
-    	log.debug "Hit Exception $e on $hubAction"
-    }
-
+ 
+ log.debug "trying hubaction 25"
+	
+    def hubAction = new physicalgraph.device.HubAction(method:"GET", path:"/api/DashData.xml", headers:[HOST: "10.0.1.22:80"])
+    return hubAction
+    
 }
 
-// This next method is only used from the simulator
-def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
-	if (cmd.scale == 0) {
-		[name: "energy", value: cmd.scaledMeterValue, unit: "kWh"]
-	} else if (cmd.scale == 1) {
-		[name: "energy", value: cmd.scaledMeterValue, unit: "kVAh"]
-	}
-	else {
-		[name: "power", value: Math.round(cmd.scaledMeterValue), unit: "W"]
-	}
-}
-
-
-def parse(String description) {
+def parse(description) {
 	def msg = parseLanMessage(description)
     log.debug "${msg.data}"
     log.debug "${msg.data.name()}"
@@ -129,6 +105,22 @@ def parse(String description) {
 }
 
 
+// This next method is only used from the simulator
+def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
+	if (cmd.scale == 0) {
+		[name: "energy", value: cmd.scaledMeterValue, unit: "kWh"]
+	} else if (cmd.scale == 1) {
+		[name: "energy", value: cmd.scaledMeterValue, unit: "kVAh"]
+	}
+	else {
+		[name: "power", value: Math.round(cmd.scaledMeterValue), unit: "W"]
+	}
+}
+
+
+
+
+
 private String convertIPtoHex(ipAddress) { 
     String hex = ipAddress.tokenize( '.' ).collect {  String.format( '%02x', it.toInteger() ) }.join()
     log.debug "IP address entered is $ipAddress and the converted hex code is $hex"
@@ -142,19 +134,30 @@ private String convertPortToHex(port) {
 }
 
 private Integer convertHexToInt(hex) {
-	Integer.parseInt(hex, 16)
+	return Integer.parseInt(hex, 16)
 }
 
 
 private String convertHexToIP(hex) {
-	[convertHexToInt(hex[0..1]), convertHexToInt(hex[2..3]), convertHexToInt(hex[4..5]), convertHexToInt(hex[6..7])].join(".")
+	return [convertHexToInt(hex[0..1]), convertHexToInt(hex[2..3]), convertHexToInt(hex[4..5]), convertHexToInt(hex[6..7])].join(".")
 }
 
 private getHostAddress() {
-	def parts = device.deviceNetworkId.split(":")
-	def ip = convertHexToIP(parts[0])
-	def port = convertHexToInt(parts[1])
-	return ip + ":" + port
+    def ip = getDataValue("ip")
+    def port = getDataValue("port")
+
+    if (!ip || !port) {
+        def parts = device.deviceNetworkId.split(":")
+        if (parts.length == 2) {
+            ip = parts[0]
+            port = parts[1]
+        } else {
+            log.warn "Can't figure out ip and port for device: ${device.id}"
+        }
+    }
+
+    log.debug "Using IP: $ip and port: $port for device: ${device.id}"
+    return convertHexToIP(ip) + ":" + convertHexToInt(port)
 }
 
 // gets the address of the hub
