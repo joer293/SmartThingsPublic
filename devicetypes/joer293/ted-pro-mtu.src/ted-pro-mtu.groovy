@@ -22,8 +22,8 @@ metadata {
 			state "default", label:'   ', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
 		 
-        valueTile("Power", "device.power", width: 2, height: 2, decoration: "flat") {
-            state "power", label:'${currentValue} Watts',
+        valueTile("Power", "device.power", width: 2, height: 2) {
+            state "power", label:'${currentValue} kW',
             backgroundColors:[
 					[value: 0, color: "#151515"],
 					[value: 100, color: "#1e9cbb"],
@@ -35,12 +35,12 @@ metadata {
 				]
             }
         valueTile("Voltage", "device.voltage", width: 3, height: 1) {
-            state "voltage", label:'Voltage: ${currentValue} Volts'
+            state "voltage", label:'${currentValue} Volts'
             }        
         valueTile("Energy", "device.energy", width: 2, height: 1) {
-            state "energy", label:'${currentValue} VA'
+            state "energy", label:'${currentValue} kVA'
             }
-        valueTile("Power Factor", "device.PF", width: 2, height: 1, decoration: 'flat') {
+        valueTile("Power Factor", "device.PF", width: 2, height: 1) {
             state "PF", label:'power factor ${currentValue}',
              backgroundColors:[
             [value: 0, color: "#ff0000"],

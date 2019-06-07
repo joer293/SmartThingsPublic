@@ -9,7 +9,7 @@ metadata {
 
         attribute "power", "number" 
         attribute "TDY", "number" 
-        attribute "MTD", "number"
+        attribute "energy", "number"
         
 
 	}
@@ -19,7 +19,7 @@ metadata {
 
 tiles(scale: 2) {
         valueTile("Power", "device.power", width: 2, height: 2, canChangeIcon: true, canChangeBackground: true) {
-            state "default", label:'${currentValue} W',
+            state "default", label:'${currentValue} kW',
             backgroundColors:[
 					[value: 0, color: "#151515"],
 					[value: 100, color: "#1e9cbb"],
@@ -31,10 +31,10 @@ tiles(scale: 2) {
 				]
             }   
         valueTile("TDY", "device.TDY", width: 4, height: 1) {
-            state "default", label:'${currentValue} Watts - Today'
+            state "default", label:'${currentValue} kW - Today'
             }
-        valueTile("MTD", "device.MTD", width: 3, height: 1) {
-            state "default", label:'${currentValue} Watts - This month'
+        valueTile("MTD", "device.energy", width: 3, height: 1) {
+            state "default", label:'${currentValue} kW - This month'
             }
         standardTile("Refresh", "device.refresh", width: 1, height: 1, decoration: 'flat') {
 			state "default", label:'   ', action:"refresh.refresh", icon:"st.secondary.refresh"
@@ -157,7 +157,7 @@ def getChartHTML() {
 									height: '80%'
 								}
 							};
-							var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+							var chart = new google.visualization.SteppedAreaChart(document.getElementById('chart_div'));
 							chart.draw(data, options);
 						}
 					</script>
