@@ -80,8 +80,8 @@ def initialize() {
 	// TODO: subscribe to attributes, devices, locations, etc.
 	
     log.debug "Initialized with settings: ${settings}"
-	runEvery1Minute(pollMTUs)
-    runEvery1Minute(pollSpyders)
+	runEvery5Minutes(pollMTUs)
+    runEvery5Minutes(pollSpyders)
    // runEvery1Minute(pollECC)
 
 }
@@ -173,16 +173,16 @@ void pollMTU(physicalgraph.device.HubResponse hubResponse) {
     state.mresp = hubResponse.xml
   
        	//MTU 1   
-    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "power", value: state.mresp.MTUVal.MTU1.Value, unit: "W", displayed:true)
-    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "energy", value: state.mresp.MTUVal.MTU1.KVA, unit: "VA", displayed:true)
-    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "PF", value: state.mresp.MTUVal.MTU1.PF, unit: "PF", displayed:true)
-    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "voltage", value: state.mresp.MTUVal.MTU1.Voltage, unit: "V", displayed:true)
+    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "power", value: (state.mresp.MTUVal.MTU1.Value.toDouble() / 1000.0), unit: "kW", displayed:true)
+    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "energy", value: (state.mresp.MTUVal.MTU1.KVA.toDouble() / 1000.0), unit: "kVA", displayed:true)
+    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "PF", value: (state.mresp.MTUVal.MTU1.PF.toDouble() / 10.0), unit: "PF", displayed:true)
+    getChildDevice("${state.GatewayID}/16081C").sendEvent(name: "voltage", value: (state.mresp.MTUVal.MTU1.Voltage.toDouble() / 10.0), unit: "V", displayed:true)
     
     //MTU 2
-    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "power", value: state.mresp.MTUVal.MTU2.Value.text(), unit: "W", displayed:true)
-    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "energy", value: state.mresp.MTUVal.MTU2.KVA.text(), unit: "VA", displayed:true)
-    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "PF", value: state.mresp.MTUVal.MTU2.PF.text(), unit: "PF", displayed:true)
-    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "voltage", value: state.mresp.MTUVal.MTU2.Voltage.text(), unit: "V", displayed:true)
+    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "power", value: (state.mresp.MTUVal.MTU2.Value.toDouble() / 1000.0), unit: "kW", displayed:true)
+    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "energy", value: (state.mresp.MTUVal.MTU2.KVA.toDouble() / 1000.0), unit: "kVA", displayed:true)
+    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "PF", value: (state.mresp.MTUVal.MTU2.PF.toDouble() / 10.0), unit: "PF", displayed:true)
+    getChildDevice("${state.GatewayID}/160AFD").sendEvent(name: "voltage", value: (state.mresp.MTUVal.MTU2.Voltage.toDouble() / 10.0), unit: "V", displayed:true)
                
     }
 
@@ -211,10 +211,10 @@ def pollSpyder(physicalgraph.device.HubResponse hubResponse){
             log.debug "spyder device ID = ${it.deviceNetworkId}"
             int s = it.deviceNetworkId.tokenize('/')[1].toInteger()
             int g = it.deviceNetworkId.tokenize('/')[2].toInteger()
-           it.sendEvent(name: "power", value: state.sresp.Spyder[s].Group[g].Now, unit: "W", displayed:true)
-           it.sendEvent(name: "energy", value: state.sresp.Spyder[s].Group[g].MTD, unit: "W", displayed:false)
-           it.sendEvent(name: "TDY", value: state.sresp.Spyder[s].Group[g].TDY, unit: "W", displayed:false)
-            it.sendEvent(name: "MTD", value: state.sresp.Spyder[s].Group[g].MTD, unit: "W", displayed:false)
+           it.sendEvent(name: "power", value: (state.sresp.Spyder[s].Group[g].Now.toDouble() / 1000.0), unit: "kW", displayed:true)
+           it.sendEvent(name: "energy", value: (state.sresp.Spyder[s].Group[g].MTD.toDouble() / 1000.0), unit: "kWh", displayed:false)
+           it.sendEvent(name: "TDY", value: (state.sresp.Spyder[s].Group[g].TDY.toDouble() / 1000.0), unit: "kWh", displayed:false)
+         //   it.sendEvent(name: "MTD", value: (state.sresp.Spyder[s].Group[g].MTD.toDouble() / 1000.0), unit: "kWh", displayed:false)
         //  log.debug "sent events to child spyder device(s)"
            break
             }
