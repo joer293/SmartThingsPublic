@@ -79,37 +79,38 @@ String getDataString(Integer seriesIndex) {
 			
             def powerData = device.statesBetween("PF", startOfToday - 1, startOfToday, [max: 1440])
    	powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
 				}
 			break
 		case 2:
 			
             def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 1440])
    	powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
 				}
 			break
 		case 3:
 			
             def energyData = device.statesSince("PF", startOfToday, [max: 1440])
    	energyData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
 				}
 			break
 		case 4:
 			
             def powerData = device.statesSince("power", startOfToday, [max: 1440])
    	powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
 				}
 			break
 	}
     
 	//}
+    
 	dataTable.each() {
 		def dataArray = [[it[0],it[1],0],null,null,null,null]
 		dataArray[seriesIndex] = it[2]
-		dataString += dataArray.toString() + ","
+		dataString += dataArray.toString().replaceAll("\\s","") + ","
 	}
   //  log.debug "data string: ${dataString}"
 	return dataString

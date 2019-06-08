@@ -68,29 +68,41 @@ void refresh() {
 String getDataString(Integer seriesIndex) {
 	def dataString = ""
 	def dataTable = []
+    def dataEnd = []
+    def t = 0
 	def startOfToday = timeToday("00:00", location.timeZone)
     switch (seriesIndex) {
 		case 1:
 			 def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 1440])
    	powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
-				}
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
+               dataEnd = [[23,59,0],null,null]
+}
 			break
 		case 2:
 			def powerData = device.statesSince("power", startOfToday, [max: 1440])
    	powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.value])
 				}
+                def dt = new Date()  // current time
+                dataEnd = [[dt.format("H", location.timeZone),dt.format("m", location.timeZone),0],null,null]
 			break
 	}
     
 	//}
-	dataTable.each() {
-		def dataArray = [[it[0],it[1],0],null,null]
-		dataArray[seriesIndex] = it[2]
-		dataString += dataArray.toString() + ","
+   
+    dataTable.each() {
+		
+        def dataArray = [[it[0],it[1],0],null,null]
+		dataArray[seriesIndex] = t
+        t = it[2].value
+		dataString += dataArray.toString().replaceAll("\\s","") + ","
 	}
-    // log.debug "data string: ${dataString}"
+   
+    
+    dataEnd[seriesIndex] = t
+    dataString += dataEnd.toString()+ ","
+   // log.debug "data string ${seriesIndex} : ${dataString}"
 	return dataString
 }
 def getStartTime() {
@@ -123,16 +135,20 @@ def getChartHTML() {
 							data.addColumn('number', 'Power (Yesterday)');
 							data.addColumn('number', 'Power (Today)');
 							data.addRows([
-								${getDataString(1)}
+								[[0,0],0,0],
+                                ${getDataString(1)}
+                                
+                                [[0,0],0,0],
 								${getDataString(2)}
+                                
 								]);
 							var options = {
-								curveType: 'function',
+                                curveType: 'function',
                                 fontName: 'Arial',
 								height: 240,
                                 animation: {duration: 1000, startup: true, easing: 'out'},
 								hAxis: {
-									format: 'H:mm',
+                                    format: 'H:mm',
 									minValue: [${getStartTime()},0,0],
 									slantedText: false
 								},
@@ -142,7 +158,7 @@ def getChartHTML() {
 								},
 								vAxes: {
 									0: {
-										title: 'Power (W)',
+										title: 'Power (kW)',
 										format: 'decimal',
 										textStyle: {color: '#004CFF'},
 										titleTextStyle: {color: '#004CFF'},
